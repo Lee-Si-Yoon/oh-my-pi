@@ -313,7 +313,19 @@ function omitsWireReasoningEffort(api: Api, compat: CompatOf<Api>): boolean {
 function isQwenTemplateBinaryThinking(api: Api, compat: CompatOf<Api>): boolean {
 	if (api !== "openai-completions" && api !== "openrouter") return false;
 	const resolved = compat as ResolvedOpenAICompat | undefined;
-	return resolved?.thinkingFormat === "qwen-chat-template" && resolved?.omitReasoningEffort === true;
+	// `omitReasoningEffort` alone is not sufficient: local llama.cpp-style
+	// Qwen 3.8+ backends (vLLM/SGLang) also suppress the top-level
+	// `reasoning_effort` field (NIM's strict schema rejects it) while still
+	// routing the effort ladder through `chat_template_kwargs.reasoning_effort`
+	// (`qwenTemplateReasoningEffort: true`). Those models genuinely expose a
+	// multi-tier ladder on the wire and must not collapse to a single binary
+	// toggle — only models with NEITHER a top-level NOR a template-kwarg
+	// effort surface (e.g. GLM-4.5's toggle-only `enable_thinking`) qualify.
+	return (
+		resolved?.thinkingFormat === "qwen-chat-template" &&
+		resolved?.omitReasoningEffort === true &&
+		resolved?.qwenTemplateReasoningEffort !== true
+	);
 }
 
 /**

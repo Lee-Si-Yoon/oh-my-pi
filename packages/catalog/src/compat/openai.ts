@@ -613,6 +613,28 @@ export function buildOpenAICompat(spec: ModelSpec<"openai-completions">): Resolv
 		// parameter, so the flag stays a no-op outside the Qwen path.
 		qwenPreserveThinking:
 			(thinkingFormat === "qwen" || thinkingFormat === "qwen-chat-template") && isLocalOpenAICompatBackend,
+		// Qwen 3.8+ templates steer thinking depth via the `reasoning_effort`
+		// template kwarg (low/medium/xhigh, default xhigh); without routing the
+		// requested effort there, the enable_thinking toggle alone leaves the
+		// model at xhigh no matter what the user selects.
+		// Local-only like `qwenPreserveThinking`: first-party Qwen APIs
+		// (Dashscope, Qwen Portal) drive effort through their own OpenAI-style
+		// dialect, and local Ollama keeps its native effort vocabulary.
+		qwenTemplateReasoningEffort:
+			(thinkingFormat === "qwen" || thinkingFormat === "qwen-chat-template") &&
+			isLocalOpenAICompatBackend &&
+			provider !== "ollama" &&
+			isQwen38PlusTemplateEffortModelId(spec.id),
+		// Friendli serves GLM-5.2 reasoning models via `chat_template_kwargs.enable_thinking`
+		// (so `thinkingFormat` resolves to `qwen-chat-template` like NVIDIA NIM Qwen), but
+		// unlike NIM it ALSO accepts top-level `reasoning_effort` for the effort ladder
+		// exposed by `getModelDefinedEfforts`. The encoder reads this to emit
+		// `reasoning_effort` alongside the template kwarg — otherwise every effort tier
+		// produces identical wire bodies. NIM's strict schema rejects top-level
+		// `reasoning_effort`, so the flag is gated to Friendli reasoning models that
+		// declare `thinking.efforts` (discovered via `/v1/models` `reasoning_options`
+		// `type: "effort"`, or the static seed for GLM-5.2's offline fallback).
+		friendliTemplateReasoningEffort: Boolean(friendliHasEffortSurface),
 		requiresAssistantContentForToolCalls: isKimiModel || isDirectDeepseekReasoning,
 		cacheControlFormat: isOpenRouter && spec.id.startsWith("anthropic/") ? "anthropic" : undefined,
 		supportsPromptCacheBreakpoints,

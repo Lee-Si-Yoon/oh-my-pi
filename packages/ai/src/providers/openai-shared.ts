@@ -1125,18 +1125,52 @@ export function applyChatCompletionsCompatPolicy(params: OpenAICompletionsParams
 						reasoning_effort: reasoning.wireEffort,
 					};
 				}
+				// Friendli's GLM-5.2 reasoning models share this
+				// `chat_template_kwargs.enable_thinking` toggle with NVIDIA NIM
+				// Qwen but, unlike NIM, additionally accept top-level
+				// `reasoning_effort` for the effort ladder. Without this, the
+				// template-only emission above collapses every effort tier to
+				// the same wire body and silently drops the user's selected
+				// effort. `friendliTemplateReasoningEffort` is gated to
+				// Friendli reasoning models with a real effort surface
+				// precisely because NIM's strict `additionalProperties: false`
+				// schema 400s on the field.
+				if (policy.compat.friendliTemplateReasoningEffort && reasoning.wireEffort !== undefined) {
+					params.reasoning_effort = reasoning.wireEffort as Effort;
+				}
 				break;
 			case "qwen-template-false":
 				// Spread so the `preserve_thinking` kwarg hoisted above
 				// survives the merge — a bare `{ enable_thinking: true }`
 				// would clobber it.
-				params.chat_template_kwargs = { ...params.chat_template_kwargs, enable_thinking: true };
-				// Emit top-level `reasoning_effort` when the resolved policy allows it.
-				// NIM's strict `additionalProperties: false` schema 400s on the field,
-				// so `omitReasoningEffort` is true for NIM and the gate stays closed.
-				// Friendli GLM-5.2 accepts the field — `omitReasoningEffort` is false
-				// because `supportsReasoningEffort` is true (effort surface declared).
-				if (!reasoning.omitReasoningEffort && reasoning.wireEffort !== undefined) {
+				params.chat_template_kwargs = {
+					...params.chat_template_kwargs,
+					enable_thinking: true,
+					...(policy.compat.qwenTemplateReasoningEffort && reasoning.wireEffort !== undefined
+						? { reasoning_effort: reasoning.wireEffort }
+						: {}),
+				};
+				// Friendli's GLM-5.2 reasoning models share this
+				// `chat_template_kwargs.enable_thinking` toggle with NVIDIA NIM
+				// Qwen but, unlike NIM, additionally accept top-level
+				// `reasoning_effort` for the effort ladder. Without this, the
+				// template-only emission above collapses every effort tier to
+				// the same wire body and silently drops the user's selected
+				// effort. `friendliTemplateReasoningEffort` is gated to
+				// Friendli reasoning models with a real effort surface
+				// precisely because NIM's strict `additionalProperties: false`
+				// schema 400s on the field, and vLLM/SGLang route the ladder
+				// through `chat_template_kwargs` alone (handled above).
+				// `reasoning.omitReasoningEffort` still wins: an explicit
+				// `compat.supportsReasoningEffort: false` override must
+				// suppress the top-level field while leaving the template
+				// toggle itself intact (tested by the compat-override
+				// regression in friendli-template-reasoning-effort.test.ts).
+				if (
+					policy.compat.friendliTemplateReasoningEffort &&
+					!reasoning.omitReasoningEffort &&
+					reasoning.wireEffort !== undefined
+				) {
 					params.reasoning_effort = reasoning.wireEffort as Effort;
 				}
 				break;

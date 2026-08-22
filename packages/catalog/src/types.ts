@@ -259,7 +259,29 @@ export interface OpenAICompat {
 	 * Non-Qwen templates ignore the flag, so the auto-detection is safe.
 	 */
 	qwenPreserveThinking?: boolean;
-	/** Whether assistant tool-call messages must include non-empty content. Default: false. */
+	/**
+	 * Route the requested thinking effort onto the Qwen 3.8+ chat template's
+	 * `reasoning_effort` kwarg (`low`/`medium`/`xhigh`; template default
+	 * `xhigh`). Emitted inside `chat_template_kwargs` for both Qwen dialects
+	 * (plus the top-level field on the `qwen` dialect, which newer llama.cpp
+	 * builds map natively). Without it the qwen dialects only toggle
+	 * `enable_thinking` and the template always thinks at its `xhigh` default.
+	 * Default: auto-detected (Qwen 3.8+ id on a local llama.cpp-style backend).
+	 */
+	qwenTemplateReasoningEffort?: boolean;
+	/**
+	 * Whether the chat-completions encoder must ALSO emit top-level
+	 * `reasoning_effort` for a `qwen-chat-template` reasoning dialect. Friendli's
+	 * GLM-5.2 reasoning models are toggled on via
+	 * `chat_template_kwargs.enable_thinking` (so they resolve to the
+	 * `qwen-chat-template` thinking format like NVIDIA NIM Qwen) but, unlike NIM,
+	 * they additionally publish the `high`/`max` effort ladder via
+	 * `reasoning_effort`. The `qwen-template-false` enable branch would otherwise
+	 * write only the template kwarg and collapse both effort tiers to identical
+	 * wire bodies. NIM's strict `additionalProperties: false` schema rejects
+	 * top-level `reasoning_effort`, so this stays Friendli-specific. Default: false.
+	 */
+	friendliTemplateReasoningEffort?: boolean;
 	requiresAssistantContentForToolCalls?: boolean;
 	/** Whether the provider supports the `tool_choice` parameter. Default: true. */
 	supportsToolChoice?: boolean;
