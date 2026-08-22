@@ -261,10 +261,10 @@ describe("Friendli provider discovery", () => {
 
 	test("uses the bundled reference cost as-is when /v1/models omits a pricing field", async () => {
 		// The seeded GLM-5.2 carries the authoritative per-million fallback
-		// (input 1.4 / output 4.4). When Friendli omits a pricing field, the
+		// (input 0.6 / output 2.2). When Friendli omits a pricing field, the
 		// reference cost must pass through unscaled — it is already in
 		// per-million-token units. Scaling it by 1e6 would report
-		// 1400000/4400000 instead of the intended 1.4/4.4.
+		// 600000/2200000 instead of the intended 0.6/2.2.
 		const fetchMock: FetchImpl = async (_input: string | URL | Request, _init?: RequestInit) => {
 			return new Response(
 				JSON.stringify({
@@ -295,9 +295,9 @@ describe("Friendli provider discovery", () => {
 		const glm = models![0];
 		// Reference fallback (per-million) flows through unscaled — NOT
 		// multiplied by 1e6.
-		expect(glm.cost.input).toBe(1.4);
-		expect(glm.cost.output).toBe(4.4);
-		expect(glm.cost.cacheRead).toBe(0.26);
+		expect(glm.cost.input).toBe(0.6);
+		expect(glm.cost.output).toBe(2.2);
+		expect(glm.cost.cacheRead).toBe(0);
 		expect(glm.cost.cacheWrite).toBe(0);
 	});
 

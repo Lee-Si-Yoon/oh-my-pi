@@ -40,8 +40,6 @@ import {
 	clampFireworksKimiMaxTokens,
 	clampKimiK27CodeMaxTokens,
 	FRIENDLI_STATIC_MODELS,
-	fetchWellKnownModels,
-	GMI_CLOUD_STATIC_MODELS,
 	isFireworksKimiK2ModelId,
 	isKimiK27CodeModelId,
 	kimiCodeMaxTokens,
@@ -587,18 +585,6 @@ async function generateModels() {
 	// Sakana is authoritative and stale seed IDs must stay out.
 	if (!authoritativeCatalogProviders.has("sakana")) {
 		allModels.push(...SAKANA_FUGU_STATIC_MODELS);
-	}
-	// Seed ai&'s documented catalog so the provider is usable when generation
-	// has no AIAND_API_KEY. A live org-scoped `/v1/models` snapshot is
-	// authoritative and replaces the seed.
-	if (!authoritativeCatalogProviders.has("aiand")) {
-		allModels.push(...AIAND_STATIC_MODELS);
-	}
-	// Seed the GMI Cloud default model so a fresh install (and a regen without a
-	// `GMI_API_KEY`) still resolves the descriptor's `defaultModel` synchronously
-	// at boot. If live `/v1/models` discovery succeeds, it is authoritative.
-	if (!authoritativeCatalogProviders.has("gmi-cloud")) {
-		allModels.push(...GMI_CLOUD_STATIC_MODELS);
 	}
 
 	// Seed the Friendli default model so a fresh install (and a regen without a
