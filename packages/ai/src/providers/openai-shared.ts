@@ -1103,6 +1103,13 @@ export function applyChatCompletionsCompatPolicy(params: OpenAICompletionsParams
 						reasoning_effort: reasoning.wireEffort,
 					};
 				}
+				// Friendli's GLM-5.2 dialect also toggles thinking through
+				// `enable_thinking`, but unlike the plain Qwen kwargs path above,
+				// it selects between distinct effort tiers via a top-level
+				// `reasoning_effort` alongside the toggle rather than a kwargs copy.
+				if (policy.compat.friendliTemplateReasoningEffort && reasoning.wireEffort !== undefined) {
+					params.reasoning_effort = reasoning.wireEffort as Effort;
+				}
 				break;
 			case "qwen-template-false":
 				// Spread so the `preserve_thinking` kwarg hoisted above
@@ -1115,6 +1122,18 @@ export function applyChatCompletionsCompatPolicy(params: OpenAICompletionsParams
 						? { reasoning_effort: reasoning.wireEffort }
 						: {}),
 				};
+				// Friendli's GLM-5.2 wire dialect accepts top-level
+				// `reasoning_effort` alongside the `enable_thinking` toggle to
+				// select between its high/max effort tiers; other
+				// qwen-chat-template hosts reject unknown top-level fields, so
+				// this is gated on the Friendli-specific compat flag.
+				if (
+					policy.compat.friendliTemplateReasoningEffort &&
+					!reasoning.omitReasoningEffort &&
+					reasoning.wireEffort !== undefined
+				) {
+					params.reasoning_effort = reasoning.wireEffort as Effort;
+				}
 				break;
 			case "openrouter-enabled-false":
 				if (reasoning.wireEffort !== undefined) {

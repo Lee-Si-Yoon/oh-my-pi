@@ -5,6 +5,7 @@
 ### Added
 
 - Fixed `google-gemini-cli` model refresh returning only bundled models for Gemini Code Assist Standard accounts, whose credential is not authorized for the Antigravity `fetchAvailableModels` endpoint (HTTP 403). Discovery now falls back to the account's own `retrieveUserQuota` list on Cloud Code Assist, surfacing models such as `gemini-3.5-flash` ([#9315](https://github.com/can1357/oh-my-pi/issues/9315)).
+- Friendli GLM reasoning models now select effort tiers correctly instead of collapsing to identical requests.
 
 ### Fixed
 
