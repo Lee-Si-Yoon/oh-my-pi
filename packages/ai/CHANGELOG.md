@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ## [18.0.1] - 2026-08-23
+### Added
+
+- Added FriendliAI API-key login support.
 
 ### Changed
 

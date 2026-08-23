@@ -9,9 +9,10 @@ export const loginFriendli = createApiKeyLogin({
 	promptMessage: "Paste your FriendliAI API key",
 	placeholder: "flp_...",
 	validation: {
-		kind: "models-endpoint",
+		kind: "chat-completions",
 		provider: "FriendliAI",
-		modelsUrl: "https://api.friendli.ai/serverless/v1/models",
+		baseUrl: "https://api.friendli.ai/serverless/v1",
+		model: "zai-org/GLM-5.2",
 	},
 });
 
