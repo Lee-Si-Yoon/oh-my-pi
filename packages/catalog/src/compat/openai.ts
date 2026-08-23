@@ -300,15 +300,19 @@ export function buildOpenAICompat(spec: ModelSpec<"openai-completions">): Resolv
 	const supportsZaiReasoningEffort = (isZai || isZhipu) && isGlm52ReasoningEffortModelId(spec.id);
 	const isFriendli = modelMatchesHost(hostModel, "friendli");
 	// Friendli's GLM-5.2 wire dialect only detects an EXPLICITLY declared
-	// effort ladder (`thinking.efforts` or the known GLM-5.2 id, matched
-	// case-insensitively since Friendli serves the id with uppercase
-	// "GLM"). There is no toggle-only fallback here: a custom
-	// Friendli-pointed provider serving a toggle-only model with no
-	// declared thinking ladder is deferred to a follow-up.
+	// effort ladder (`thinking.efforts` or the known GLM-5.2+ id). There is
+	// no toggle-only fallback here: a custom Friendli-pointed provider
+	// serving a toggle-only model with no declared thinking ladder is
+	// deferred to a follow-up. The discovered `thinking.efforts` ladder is
+	// authoritative and wins regardless of model id, so a future
+	// Friendli-served model that declares an effort ladder via discovery is
+	// covered without a code change; `isGlm52ReasoningEffortModelId` is only
+	// the fallback for hardcoded/custom-provider ids without discovery data,
+	// and it intentionally matches `>=5.2` (GLM-5.3+ inherits it too).
 	const friendliHasEffortSurface =
 		isFriendli &&
 		Boolean(spec.reasoning) &&
-		((spec.thinking?.efforts?.length ?? 0) > 0 || isGlm52ReasoningEffortModelId(spec.id.toLowerCase()));
+		((spec.thinking?.efforts?.length ?? 0) > 0 || isGlm52ReasoningEffortModelId(spec.id));
 	const isKilo = modelMatchesHost(hostModel, "kilo");
 	const isKimiModel = isKimiModelId(spec.id);
 	const isMoonshotNative = modelMatchesHost(hostModel, "moonshotNative");

@@ -344,7 +344,7 @@ function getModelDefinedEfforts<TApi extends Api>(
 	if (isFriendliHost && spec.reasoning && spec.thinking?.efforts?.length) {
 		return spec.thinking.efforts;
 	}
-	if (isGlm52ReasoningEffortModelId(isFriendliHost ? spec.id.toLowerCase() : spec.id)) {
+	if (isGlm52ReasoningEffortModelId(spec.id)) {
 		// GLM-5.2's reasoning_effort dialect is host-specific (verified against
 		// live endpoints):
 		//   - Z.ai/Zhipu ("zai" dialect) expose only high/max ("none" is the
