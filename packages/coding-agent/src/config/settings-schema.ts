@@ -3568,6 +3568,17 @@ export const SETTINGS_SCHEMA = {
 			description: "Append full before/after source when an edit introduces an AST parse failure",
 		},
 	},
+	"edit.autoRepair.enabled": {
+		type: "boolean",
+		default: false,
+		ui: {
+			tab: "files",
+			group: "Editing",
+			label: "Auto-Repair Parse Regressions",
+			description:
+				"When an edit breaks a file's AST parse, ask the smol model to fix the broken region (validated by re-parse; falls back to a warning)",
+		},
+	},
 
 	readLineNumbers: {
 		type: "boolean",
@@ -5351,13 +5362,14 @@ export const SETTINGS_SCHEMA = {
 	},
 	"providers.tts": {
 		type: "enum",
-		values: ["auto", "local", "xai"] as const,
+		values: ["auto", "local", "xai", "deepinfra"] as const,
 		default: "auto",
 		ui: {
 			tab: "providers",
 			group: "Services",
 			label: "Text-to-Speech Provider",
-			description: "Backend for the tts tool: local on-device neural TTS (Kokoro-82M) or xAI Grok Voice",
+			description:
+				"Backend for the tts tool: local on-device neural TTS (Kokoro-82M), xAI Grok Voice, or DeepInfra speech",
 			options: [
 				{
 					value: "auto",
@@ -5369,6 +5381,11 @@ export const SETTINGS_SCHEMA = {
 					value: "xai",
 					label: "xAI Grok Voice",
 					description: "Requires xAI Grok OAuth or XAI_API_KEY; MP3 or WAV",
+				},
+				{
+					value: "deepinfra",
+					label: "DeepInfra Speech",
+					description: "Requires DEEPINFRA_API_KEY; MP3 or WAV",
 				},
 			],
 		},
