@@ -42,7 +42,7 @@ async function captureBody(reasoning: Effort | undefined): Promise<Record<string
 		input: ["text"],
 		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 		contextWindow: 1048576,
-		maxTokens: 131072,
+		maxTokens: 1048576,
 	} as ModelSpec<"openai-completions">) as Model<"openai-completions">;
 	for await (const event of streamOpenAICompletions(model, context, { apiKey: "k", fetch: fetchMock, reasoning })) {
 		if (event.type === "done" || event.type === "error") break;
