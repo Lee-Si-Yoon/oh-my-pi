@@ -5,9 +5,11 @@ import { resolveProviderModels } from "../src/model-manager";
 import type { Model, ModelSpec } from "../src/types";
 
 /**
- * Friendli's bundled surface is a curated static seed (no discovery), so the
- * provider must resolve end-to-end from the bundle alone: the picker shows the
- * model and chat requests carry the correct reasoning-effort dialect.
+ * Friendli's bundled catalog maps its models.dev provider slice at generation
+ * time (six tool-capable serverless models) with a curated static seed as the
+ * offline fallback for the default model. The provider must resolve end-to-end
+ * from the bundle alone: the picker lists the models and chat requests carry
+ * the correct reasoning-effort dialect.
  * Regression guards: a stale/empty `"friendli": {}` slice once left the
  * descriptor's `defaultModel` unresolvable at boot (#9410), and a hand-written
  * `thinking` block on the seed would fight the identity-derived ladder.
@@ -27,11 +29,11 @@ function spec(): ModelSpec<"openai-completions"> {
 	};
 }
 
-describe("Friendli static seed", () => {
-	it("resolves the bundled provider catalog with the seeded flagship", async () => {
+describe("Friendli provider bundle", () => {
+	it("resolves the bundled provider catalog with the default model present", async () => {
 		const result = await resolveProviderModels({ providerId: "friendli" }, "offline");
 		expect(result.source).toBe("bundled");
-		expect(result.models.map(model => model.id)).toEqual(["zai-org/GLM-5.3"]);
+		expect(result.models.map(model => model.id)).toContain("zai-org/GLM-5.3");
 	});
 
 	it("derives the wire reasoning surface from identity, not a seed thinking block", () => {
