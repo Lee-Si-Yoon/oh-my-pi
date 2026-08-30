@@ -1242,4 +1242,62 @@ describe("qwen-chat-template binary thinking toggle collapse", () => {
 		expect(topLevelEffort.thinking?.efforts).toEqual([Effort.Medium]);
 		expect(topLevelEffort.thinking?.effortMap).toBeUndefined();
 	});
+
+	it("keeps effort-routed tiers that resolve to distinct upstream wire ids", () => {
+		// effortRouting maps each tier to a wire model that the request
+		// serializes (resolveWireModelId), so tiers routing to distinct
+		// upstream ids are wire-distinct and must keep their ladder —
+		// collapsing would strand every routed upstream except the kept
+		// tier behind a picker that can no longer select them.
+		const routed = createModel({
+			id: "qwen3.8-30b",
+			api: "openai-completions",
+			provider: "custom",
+			baseUrl: "https://gateway.example.com/v1",
+			compat: {
+				thinkingFormat: "qwen-chat-template",
+				omitReasoningEffort: true,
+			},
+			thinking: {
+				mode: "effort",
+				efforts: [Effort.Low, Effort.Medium, Effort.High],
+				effortRouting: {
+					[Effort.Low]: "qwen3.8-30b-low",
+					[Effort.Medium]: "qwen3.8-30b-medium",
+					[Effort.High]: "qwen3.8-30b-high",
+				},
+			},
+		});
+		expect(routed.thinking?.efforts).toEqual([Effort.Low, Effort.Medium, Effort.High]);
+		expect(routed.thinking?.effortRouting).not.toBeUndefined();
+	});
+
+	it("still collapses routed ladders whose tiers all send the same wire id", () => {
+		// The variant-collapse X/X-thinking pair shape: every tier routes
+		// to the same upstream id, so tiers stay body-identical and the
+		// fake-ladder collapse must still apply.
+		const uniformlyRouted = createModel({
+			id: "qwen3.8-30b",
+			api: "openai-completions",
+			provider: "custom",
+			baseUrl: "https://gateway.example.com/v1",
+			compat: {
+				thinkingFormat: "qwen-chat-template",
+				omitReasoningEffort: true,
+			},
+			thinking: {
+				mode: "effort",
+				efforts: [Effort.Low, Effort.Medium, Effort.High],
+				defaultLevel: Effort.Medium,
+				effortRouting: {
+					off: "qwen3.8-30b",
+					[Effort.Low]: "qwen3.8-30b-thinking",
+					[Effort.Medium]: "qwen3.8-30b-thinking",
+					[Effort.High]: "qwen3.8-30b-thinking",
+				},
+			},
+		});
+		expect(uniformlyRouted.thinking?.efforts).toEqual([Effort.Medium]);
+		expect(uniformlyRouted.thinking?.effortMap).toBeUndefined();
+	});
 });

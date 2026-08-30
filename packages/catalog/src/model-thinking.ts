@@ -305,6 +305,14 @@ function isQwenTemplateBinaryThinking(api: Api, compat: CompatOf<Api>): boolean 
  * control instead. The kept tier is the model's `defaultLevel` when set,
  * else the highest bundled effort; the per-tier `effortMap` no longer
  * applies to a collapsed single-tier ladder and is dropped.
+ *
+ * Effort-routed models are exempt when their tiers resolve to DISTINCT
+ * upstream wire ids: `effortRouting` maps each tier to a wire model
+ * (`resolveWireModelId`) that the request serializes, so the tiers are
+ * wire-distinct and collapsing would strand every routed upstream except
+ * the kept tier. Uniform routing — the X/X-thinking pair shape, where
+ * every tier routes to the same id — still produces identical bodies
+ * per tier and still collapses; only wire-distinct routing survives.
  */
 function collapseQwenTemplateBinaryThinking<TApi extends Api>(
 	thinking: ThinkingConfig,
@@ -313,6 +321,10 @@ function collapseQwenTemplateBinaryThinking<TApi extends Api>(
 ): ThinkingConfig {
 	if (!isQwenTemplateBinaryThinking(spec.api, compat)) return thinking;
 	if (thinking.efforts.length <= 1) return thinking;
+	const routedWireIds = new Set(
+		thinking.efforts.map(effort => thinking.effortRouting?.[effort] ?? spec.requestModelId ?? spec.id),
+	);
+	if (routedWireIds.size > 1) return thinking;
 	const tier = thinking.defaultLevel ?? thinking.efforts[thinking.efforts.length - 1];
 	const collapsed: ThinkingConfig = { ...thinking, efforts: [tier] };
 	delete collapsed.effortMap;
