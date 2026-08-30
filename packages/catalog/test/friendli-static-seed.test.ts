@@ -1,8 +1,29 @@
-import { describe, expect, it } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import { buildModel } from "../src/build";
 import { Effort } from "../src/effort";
 import { resolveProviderModels } from "../src/model-manager";
 import type { Model, ModelSpec } from "../src/types";
+
+const tempDirs: string[] = [];
+afterEach(() => {
+	while (tempDirs.length > 0) {
+		fs.rmSync(tempDirs.pop()!, { recursive: true, force: true });
+	}
+});
+
+/**
+ * Isolated cache DB for resolution tests: the shared agent cache may hold
+ * runtime discovery rows written by a real CLI session, and those must not
+ * leak into the bundled-catalog assertions.
+ */
+function isolatedCachePath(): string {
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "friendli-seed-"));
+	tempDirs.push(dir);
+	return path.join(dir, "models.db");
+}
 
 /**
  * Friendli's bundled catalog maps its models.dev provider slice at generation
@@ -31,7 +52,10 @@ function spec(): ModelSpec<"openai-completions"> {
 
 describe("Friendli provider bundle", () => {
 	it("resolves the bundled provider catalog with the default model present", async () => {
-		const result = await resolveProviderModels({ providerId: "friendli" }, "offline");
+		const result = await resolveProviderModels(
+			{ providerId: "friendli", cacheDbPath: isolatedCachePath() },
+			"offline",
+		);
 		expect(result.source).toBe("bundled");
 		expect(result.models.map(model => model.id)).toContain("zai-org/GLM-5.3");
 	});
