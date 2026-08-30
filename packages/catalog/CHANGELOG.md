@@ -4,6 +4,7 @@
 
 ### Added
 
+- FriendliAI is now available as a model provider, preconfigured with its serverless flagship `zai-org/GLM-5.3` (1M context, low/high/max reasoning effort).
 - Added the native `cline-pass` provider with live roster discovery, generated offline metadata, concise public model IDs, and verified output-token and reasoning-effort request shaping ([#7863](https://github.com/can1357/oh-my-pi/pull/7863) by [@will-bogusz](https://github.com/will-bogusz)).
 - ClinePass roster discovery now also surfaces Cline's free-tier models: the `free` bucket of the recommended-models endpoint is overlaid after the subscription roster (which remains the required, independently validated anchor), free IDs keep their full OpenRouter-style form on the wire via a bucket-derived raw wire tag, and known free models self-enrich from the bundled upstream reference with a `(free)` name marker ([#7863](https://github.com/can1357/oh-my-pi/pull/7863) by [@will-bogusz](https://github.com/will-bogusz)).
 - ClinePass subscription models now surface upstream list prices (resolved from the bundled reference) so cost display reads as API-equivalent spend, matching the Codex/GitHub Copilot policy; only the free tier renders as $0 ([#7863](https://github.com/can1357/oh-my-pi/pull/7863) by [@will-bogusz](https://github.com/will-bogusz)).
