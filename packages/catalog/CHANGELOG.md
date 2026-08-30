@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Friendli GLM reasoning models now select effort tiers correctly instead of collapsing to identical requests.
+- Fixed custom Friendli-hosted reasoning models without a declared effort ladder showing fabricated thinking tiers that all sent identical requests; they now report a single uncontrollable reasoning surface matching the endpoint's default behavior.
 
 ### Added
 

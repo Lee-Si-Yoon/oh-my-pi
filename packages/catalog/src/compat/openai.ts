@@ -507,7 +507,11 @@ export function buildOpenAICompat(spec: ModelSpec<"openai-completions">): Resolv
 		// OpenAI's reasoning-API surface.
 		supportsDeveloperRole: isOpenAIHost || isAzureHost,
 		supportsMultipleSystemMessages: supportsMultipleSystemMessagesDefault,
-		supportsReasoningEffort: !isGrok && !isXiaomiMimo && (!(isZai || isZhipu) || supportsZaiReasoningEffort) && (!isFriendli || friendliHasEffortSurface),
+		supportsReasoningEffort:
+			!isGrok &&
+			!isXiaomiMimo &&
+			(!(isZai || isZhipu) || supportsZaiReasoningEffort) &&
+			(!isFriendli || friendliHasEffortSurface),
 		// GitHub Copilot's chat-completions endpoint rejects reasoning params wholesale.
 		supportsReasoningParams: provider !== "github-copilot",
 		// OpenAI proprietary reasoning models (o-series, gpt-5+) reject explicit

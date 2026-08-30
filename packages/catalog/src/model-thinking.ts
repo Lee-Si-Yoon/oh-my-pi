@@ -155,6 +155,20 @@ export function resolveModelThinking<TApi extends Api>(
 	if (spec.thinking && Array.isArray(spec.thinking.efforts) && spec.thinking.efforts.length > 0) {
 		return fillThinkingWireDefaults(spec, compat, spec.thinking);
 	}
+	// Friendli Chat Completions accepts `reasoning_effort` per model, not per
+	// host: effort models (discovered `thinking.efforts`, GLM-5.2+ identity)
+	// take it, toggle-only models 400 on it. A Friendli-hosted spec with
+	// neither a declared ladder nor an identity-known one has an unclassified
+	// effort surface — fabricating the default `minimal..high` ladder here
+	// would surface four picker tiers while `supportsReasoningEffort: false`
+	// strips `reasoning_effort` from the wire, so every tier sends a
+	// byte-identical body. Report no controllable surface instead and let the
+	// endpoint's default reasoning depth apply. Explicit/discovered ladders
+	// hit the early return above, and the GLM-5.2 identity fallback inside
+	// `getModelDefinedEfforts` keeps HIGH_MAX flowing for GLM-5.2 specs.
+	if (modelMatchesHost(spec, "friendli") && getModelDefinedEfforts(spec, compat) === undefined) {
+		return undefined;
+	}
 	// Cascade selects effort only by routing to a sibling model id, so a Devin
 	// model with no explicit routed thinking has no controllable surface —
 	// never fabricate an effort ladder from identity.
