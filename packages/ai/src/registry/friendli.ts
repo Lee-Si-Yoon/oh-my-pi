@@ -4,7 +4,7 @@ import type { ProviderDefinition } from "./types";
 
 export const loginFriendli = createApiKeyLogin({
 	providerLabel: "FriendliAI",
-	authUrl: "https://friendli.ai/suite/~/setting/keys",
+	authUrl: "https://friendli.ai/suite",
 	instructions: "Copy your Personal API key from Friendli Suite",
 	promptMessage: "Paste your FriendliAI API key",
 	placeholder: "flp_...",
@@ -12,7 +12,7 @@ export const loginFriendli = createApiKeyLogin({
 		kind: "chat-completions",
 		provider: "FriendliAI",
 		baseUrl: "https://api.friendli.ai/serverless/v1",
-		model: "zai-org/GLM-5.2",
+		model: "zai-org/GLM-5.3",
 	},
 });
 
